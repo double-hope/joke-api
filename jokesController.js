@@ -26,4 +26,33 @@ function getAllJokes(req, res) {
     }
 }
 
-module.exports = { getAllJokes }
+function addJoke(req, res) {
+    try {
+        const dataFolder = path.join(__dirname, 'data');
+        let body = '';
+
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+
+        req.on('end', () => {
+            const newJoke = JSON.parse(body);
+
+            const jokeId = Date.now();
+            newJoke.Id = jokeId;
+
+            const filePath = path.join(dataFolder, `${jokeId}.json`);
+            fs.writeFileSync(filePath, JSON.stringify(newJoke, null, 2));
+
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: `New joke was added with id ${jokeId}` }));
+        });
+
+    } catch(err) {
+        console.error(err);
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('Internal Server Error');
+    }
+}
+
+module.exports = { getAllJokes, addJoke }
